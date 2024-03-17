@@ -68,7 +68,7 @@ type Items = Record<UniqueIdentifier, UniqueIdentifier[]>;
 interface Props {
   adjustScale?: boolean;
   cancelDrop?: CancelDrop;
-  columns?: number;
+ // columns?: number;
   containerStyle?: React.CSSProperties;
   coordinateGetter?: KeyboardCoordinateGetter;
   getItemStyles?(args: {
@@ -82,7 +82,7 @@ interface Props {
   }): React.CSSProperties;
   wrapperStyle?(args: { index: number }): React.CSSProperties;
   itemCount?: number;
-  items?: Items;
+  initialItems: Items;
   handle?: boolean;
   renderItem?: any;
   strategy?: SortingStrategy;
@@ -128,9 +128,9 @@ export const MultipleContainers = ({
   adjustScale = false,
   itemCount = 3,
   cancelDrop,
-  columns,
+  //columns,
   handle = false,
-  items: initialItems,
+  initialItems: initialItems,
   containerStyle,
   coordinateGetter = multipleContainersCoordinateGetter,
   getItemStyles = () => ({}),
@@ -143,15 +143,8 @@ export const MultipleContainers = ({
   vertical = false,
   scrollable,
 }: Props) => {
-  const [items, setItems] = useState<Items>(
-    () =>
-      initialItems ?? {
-        A: createRange(itemCount, (index) => `A${index + 1}`),
-        B: createRange(itemCount, (index) => `B${index + 1}`),
-        C: createRange(itemCount, (index) => `C${index + 1}`),
-        D: createRange(itemCount, (index) => `D${index + 1}`),
-      }
-  );
+  
+  const [items, setItems] = useState<Items>(() => initialItems );
 
   const [containers, setContainers] = useState(
     Object.keys(items) as UniqueIdentifier[]
@@ -200,7 +193,6 @@ export const MultipleContainers = ({
         if (overId in items) {
           const containerItems = items[overId];
 
-          // If a container is matched and it contains items (columns 'A', 'B', 'C')
           if (containerItems.length > 0) {
             // Return the closest droppable within that container
             overId = closestCenter({
@@ -234,6 +226,7 @@ export const MultipleContainers = ({
   );
 
   const [clonedItems, setClonedItems] = useState<Items | null>(null);
+  
   const sensors = useSensors(
     useSensor(MouseSensor),
     useSensor(TouchSensor),
@@ -264,7 +257,6 @@ export const MultipleContainers = ({
       // Dragged across containers
       setItems(clonedItems);
     }
-
     setActiveId(null);
     setClonedItems(null);
   };
@@ -273,6 +265,7 @@ export const MultipleContainers = ({
     requestAnimationFrame(() => {
       recentlyMovedToNewContainer.current = false;
     });
+    console.log(items);
   }, [items]);
 
   function renderSortableItemDragOverlay(id: UniqueIdentifier) {
@@ -300,8 +293,7 @@ export const MultipleContainers = ({
   function renderContainerDragOverlay(containerId: UniqueIdentifier) {
     return (
       <Container
-        label={`Column ${containerId}`}
-        columns={columns}
+        label={`- ${containerId}`}
         style={{
           height: '100%',
         }}
@@ -355,6 +347,84 @@ export const MultipleContainers = ({
       }));
     });
   }
+
+
+  const onDragEnd = ({ active, over }) => {
+
+      if (active.id in items && over?.id) {
+        setContainers((containers) => {
+          const activeIndex = containers.indexOf(active.id);
+          const overIndex = containers.indexOf(over.id);
+          return arrayMove(containers, activeIndex, overIndex);
+        });
+      }
+
+      const activeContainer = findContainer(active.id);
+
+      if (!activeContainer) {
+        setActiveId(null);
+        return;
+      }
+
+      const overId = over?.id;
+
+      if (overId == null) {
+        setActiveId(null);
+        return;
+      }
+
+      if (overId === TRASH_ID) {
+        setItems((items) => ({
+          ...items,
+          [activeContainer]: items[activeContainer].filter(
+            (id) => id !== activeId
+          ),
+        }));
+        setActiveId(null);
+        return;
+      }
+
+      if (overId === PLACEHOLDER_ID) {
+        const newContainerId = getNextContainerId();
+
+        unstable_batchedUpdates(() => {
+          setContainers((containers) => [...containers, newContainerId]);
+          setItems((items) => ({
+            ...items,
+            [activeContainer]: items[activeContainer].filter(
+              (id) => id !== activeId
+            ),
+            [newContainerId]: [active.id],
+          }));
+          setActiveId(null);
+        });
+        return;
+      }
+
+      const overContainer = findContainer(overId);
+
+      if (overContainer) {
+        const activeIndex = items[activeContainer].indexOf(active.id);
+        const overIndex = items[overContainer].indexOf(overId);
+
+        if (activeIndex !== overIndex) {
+          setItems((items) => ({
+            ...items,
+            [overContainer]: arrayMove(
+              items[overContainer],
+              activeIndex,
+              overIndex
+            ),
+          }));
+        }
+      }
+    
+
+      setActiveId(null);
+    
+  }
+
+
 
   return (
     <DndContext
@@ -426,78 +496,7 @@ export const MultipleContainers = ({
           });
         }
       }}
-      onDragEnd={({ active, over }) => {
-        if (active.id in items && over?.id) {
-          setContainers((containers) => {
-            const activeIndex = containers.indexOf(active.id);
-            const overIndex = containers.indexOf(over.id);
-
-            return arrayMove(containers, activeIndex, overIndex);
-          });
-        }
-
-        const activeContainer = findContainer(active.id);
-
-        if (!activeContainer) {
-          setActiveId(null);
-          return;
-        }
-
-        const overId = over?.id;
-
-        if (overId == null) {
-          setActiveId(null);
-          return;
-        }
-
-        if (overId === TRASH_ID) {
-          setItems((items) => ({
-            ...items,
-            [activeContainer]: items[activeContainer].filter(
-              (id) => id !== activeId
-            ),
-          }));
-          setActiveId(null);
-          return;
-        }
-
-        if (overId === PLACEHOLDER_ID) {
-          const newContainerId = getNextContainerId();
-
-          unstable_batchedUpdates(() => {
-            setContainers((containers) => [...containers, newContainerId]);
-            setItems((items) => ({
-              ...items,
-              [activeContainer]: items[activeContainer].filter(
-                (id) => id !== activeId
-              ),
-              [newContainerId]: [active.id],
-            }));
-            setActiveId(null);
-          });
-          return;
-        }
-
-        const overContainer = findContainer(overId);
-
-        if (overContainer) {
-          const activeIndex = items[activeContainer].indexOf(active.id);
-          const overIndex = items[overContainer].indexOf(overId);
-
-          if (activeIndex !== overIndex) {
-            setItems((items) => ({
-              ...items,
-              [overContainer]: arrayMove(
-                items[overContainer],
-                activeIndex,
-                overIndex
-              ),
-            }));
-          }
-        }
-
-        setActiveId(null);
-      }}
+      onDragEnd={onDragEnd}
       cancelDrop={cancelDrop}
       onDragCancel={onDragCancel}
       modifiers={modifiers}
@@ -522,8 +521,8 @@ export const MultipleContainers = ({
             <DroppableContainer
               key={containerId}
               id={containerId}
-              label={minimal ? undefined : `Column ${containerId}`}
-              columns={columns}
+              label={minimal ? undefined : `${containerId}`}
+            //  columns={columns}
               items={[
                 ...items[containerId],
                 ...items[containerId],

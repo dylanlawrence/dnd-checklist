@@ -60,7 +60,7 @@ export function DroppableContainer({
         ...attributes,
         ...listeners,
       }}
-      columns={columns}
+      
       {...props}
     >
       {children}

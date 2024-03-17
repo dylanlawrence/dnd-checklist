@@ -125,14 +125,17 @@ export const Item = React.memo(
           ref={ref}
         >
           <div
-            className={classNames(
-              styles.Item,
-              dragging && styles.dragging,
-              handle && styles.withHandle,
-              dragOverlay && styles.dragOverlay,
-              disabled && styles.disabled,
-              color && styles.color
-            )}
+            className={
+              classNames( styles.Item,
+                      dragOverlay && styles.dragOverlay,
+                      disabled && styles.disabled,
+                      color && styles.color
+                 ) +
+              `flex flex-1 rounded-md mb-1 p-2 bg-slate-400 cursor-grab bg-[var(--color)]
+              ${dragging && 'dark:bg-purple-700'}
+              ${dragOverlay && 'dark:bg-slate-700/90 border border-red-500'}
+              `
+            }
             style={style}
             data-cypress="draggable-item"
             {...(!handle ? listeners : undefined)}
@@ -140,6 +143,7 @@ export const Item = React.memo(
             tabIndex={!handle ? 0 : undefined}
           >
             {value}
+            
             <span className={styles.Actions}>
               {onRemove ? (
                 <Remove className={styles.Remove} onClick={onRemove} />

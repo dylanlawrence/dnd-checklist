@@ -1,10 +1,10 @@
 import React, { forwardRef } from "react";
 import classNames from "classnames";
+import styles from "./Container.module.css";
 
 import { Handle } from "../Handle";
 import { Remove } from "../Remove";
 
-import styles from "./Container.module.css";
 
 export interface Props {
   children: React.ReactNode;
@@ -26,7 +26,6 @@ export const Container = forwardRef<HTMLDivElement, Props>(
   (
     {
       children,
-      columns = 1,
       handleProps,
       horizontal,
       hover,
@@ -51,31 +50,33 @@ export const Container = forwardRef<HTMLDivElement, Props>(
         style={
           {
             ...style,
-            "--columns": columns
           } as React.CSSProperties
         }
-        className={classNames(
-          styles.Container,
-          unstyled && styles.unstyled,
-          horizontal && styles.horizontal,
-          hover && styles.hover,
-          placeholder && styles.placeholder,
-          scrollable && styles.scrollable,
-          shadow && styles.shadow
-        )}
+        className={`flex flex-col grid min-w-[350px] mb-4 overflow-hidden rounded-lg`
+        //   classNames(
+        //   styles.Container,
+        //   unstyled && styles.unstyled,
+        //   horizontal && styles.horizontal,
+        //   hover && styles.hover,
+        //   placeholder && styles.placeholder,
+        //   scrollable && styles.scrollable,
+        //   shadow && styles.shadow
+        // )
+      }
+
         onClick={onClick}
         tabIndex={onClick ? 0 : undefined}
       >
         {label ? (
-          <div className={styles.Header}>
+          <div className='flex items-center justify-between bg-slate-200 dark:bg-slate-700 pl-4 w-full'>
             {label}
-            <div className={styles.Actions}>
+            <div className='flex items-center'>
               {onRemove ? <Remove onClick={onRemove} /> : undefined}
               <Handle {...handleProps} />
             </div>
           </div>
         ) : null}
-        {placeholder ? children : <ul>{children}</ul>}
+        {placeholder ? children : <ul className="p-4 dark:bg-slate-900">{children}</ul>}
       </Component>
     );
   }
