@@ -99,7 +99,8 @@ export const Item = React.memo(
             fadeIn && styles.fadeIn,
             sorting && styles.sorting,
             dragOverlay && styles.dragOverlay
-          )}
+          ) + `flex
+          ${dragOverlay && 'dark:bg-slate-700 ring-2 ring-offset-2 ring-blue-500 rounded-md '}`}
           style={
             {
               ...wrapperStyle,
@@ -131,9 +132,9 @@ export const Item = React.memo(
                       disabled && styles.disabled,
                       color && styles.color
                  ) +
-              `flex flex-1 rounded-md mb-1 p-2 bg-slate-400 cursor-grab bg-[var(--color)]
+              `flex flex-1 rounded-md mb-1 p-2 cursor-grab bg-[var(--color)]
               ${dragging && 'dark:bg-purple-700'}
-              ${dragOverlay && 'dark:bg-slate-700/90 border border-red-500'}
+              ${dragOverlay && 'dark:bg-slate-700 ring-1'}
               `
             }
             style={style}
@@ -142,7 +143,7 @@ export const Item = React.memo(
             {...props}
             tabIndex={!handle ? 0 : undefined}
           >
-            {value}
+     {value}
             
             <span className={styles.Actions}>
               {onRemove ? (

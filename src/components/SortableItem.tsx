@@ -87,6 +87,7 @@ export function SortableItem({
         overIndex: over ? getIndex(over.id) : overIndex,
         containerId,
       })}
+      onRemove={()=>{}}
       color={getColor(id)}
       transition={transition}
       transform={transform}

@@ -68,8 +68,8 @@ export const Container = forwardRef<HTMLDivElement, Props>(
         tabIndex={onClick ? 0 : undefined}
       >
         {label ? (
-          <div className='flex items-center justify-between bg-slate-200 dark:bg-slate-700 pl-4 w-full'>
-            {label}
+          <div className='flex items-center justify-between bg-slate-200 dark:bg-slate-700 pl-4 w-full text-white'>
+            {label} -
             <div className='flex items-center'>
               {onRemove ? <Remove onClick={onRemove} /> : undefined}
               <Handle {...handleProps} />
